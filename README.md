@@ -1,0 +1,2 @@
+# personalCLI
+A custom terminal
