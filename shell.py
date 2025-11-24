@@ -4,8 +4,11 @@ import shutil
 import subprocess
 import webbrowser
 import psutil
+from urllib.parse import quote_plus
 
-__commands__ = { 'open', 'close', 'exit', 'move', 'shutdown', 'restart', 'sleep', 'play', 'pause', 'volume', 'playlist', 'youtube', 'google', 'news', 'weather', 'wiki', 'download', 'screenshot', 'help', 'undo', 'redo', 'battery'}
+# do to: move, sleep, play, pause, volume, playlist, news, weather, download, ss, record
+
+__commands__ = { 'open', 'close', 'exit', 'move', 'shutdown', 'restart', 'sleep', 'play', 'pause', 'volume', 'playlist', 'youtube', 'google', 'news', 'weather', 'wiki', 'download', 'screenshot', 'record', 'help', 'battery'}
 __appMap__ = {
     "chrome": "chrome.exe",
     "vscode": "code.exe",
@@ -55,6 +58,12 @@ def checkType(input: str):
             Fopen(parameter)
         elif command == 'close':
             Fclose(parameter)
+        elif command == 'google':
+            Fopen("https://www.google.com/search?q=" + quote_plus(parameter))
+        elif command == 'youtube':
+            openYT(parameter)
+        elif command == 'wiki':
+            Fopen("https://en.wikipedia.org/w/index.php?search=" + quote_plus(parameter))
         else:
             print(f'{command} available')
 
@@ -66,6 +75,11 @@ def checkType(input: str):
 def looksLikeURL(arg:str):
     arg = arg.lower()
     return arg.startswith('http://') or arg.startswith('https://')
+
+def openYT(arg: str):
+    brave = r'C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe'
+    url = "https://www.youtube.com/results?search_query=" + quote_plus(arg)
+    subprocess.Popen([brave, url])
 
 def runExecutable(name: str):
     if os.path.exists(name):
