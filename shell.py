@@ -5,6 +5,9 @@ import subprocess
 import webbrowser
 import psutil
 from urllib.parse import quote_plus
+import requests
+
+newsAPI = '50996d978fe94a2d8e06d5654c5f568e'
 
 # do to: move, sleep, play, pause, volume, playlist, news, weather, download, ss, record
 
@@ -64,6 +67,10 @@ def checkType(input: str):
             openYT(parameter)
         elif command == 'wiki':
             Fopen("https://en.wikipedia.org/w/index.php?search=" + quote_plus(parameter))
+        elif command == 'news':
+            getNews(parameter)
+        elif command == 'weather':
+            getWeather(parameter)
         else:
             print(f'{command} available')
 
@@ -80,6 +87,69 @@ def openYT(arg: str):
     brave = r'C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe'
     url = "https://www.youtube.com/results?search_query=" + quote_plus(arg)
     subprocess.Popen([brave, url])
+
+def getNews(arg: str):
+    if not newsAPI:
+        print('API error')
+        return
+    
+    if arg: 
+        url = f"https://newsapi.org/v2/everything?q={arg}&sortBy=publishedAt&apiKey={newsAPI}"
+    else:
+        url = f"https://newsapi.org/v2/top-headlines?country=in&apiKey={newsAPI}"
+    
+    res = requests.get(url)
+    data = res.json()
+    if data.get("status") != "ok":
+            print("news: API error:", data.get("message", "Unknown error"))
+            return
+        
+    articles = data.get("articles", [])[:5]
+    if not articles:
+            print("news: no articles found.")
+            return
+        
+    print("\nTop Headlines:\n")
+    for i, a in enumerate(articles, 1):
+        print(f"{i}. {a.get('title')}")
+    print()
+
+def getWeather(location):
+    try:
+        geo_url = "https://nominatim.openstreetmap.org/search"
+        geo_params = {"q": location, "format": "json", "limit": 1}
+        geo_res = requests.get(geo_url, params=geo_params, headers={
+            "User-Agent": "MyWeatherCLI/1.0"
+        }).json()
+
+        if not geo_res:
+            print("weather: location not found.")
+            return
+
+        lat = geo_res[0]["lat"]
+        lon = geo_res[0]["lon"]
+
+        weather_url = f"https://api.met.no/weatherapi/locationforecast/2.0/compact"
+        weather_res = requests.get(
+            weather_url,
+            params={"lat": lat, "lon": lon},
+            headers={"User-Agent": "MyWeatherCLI/1.0"}
+        ).json()
+
+        # Parse data
+        timeseries = weather_res["properties"]["timeseries"]
+        current = timeseries[0]["data"]
+
+        temp = current["instant"]["details"]["air_temperature"]
+        wind = current["instant"]["details"]["wind_speed"]
+        
+        print(f"\nWeather in {location.capitalize()}:")
+        print(f"Temperature: {temp}°C")
+        print(f"Windspeed: {wind} m/s")
+        print()
+
+    except Exception as e:
+        print("weather: request failed:", e)
 
 def runExecutable(name: str):
     if os.path.exists(name):
