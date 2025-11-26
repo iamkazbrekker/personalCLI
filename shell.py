@@ -6,6 +6,7 @@ import webbrowser
 import psutil
 from urllib.parse import quote_plus
 import requests
+import speech_recognition as sr
 
 newsAPI = '50996d978fe94a2d8e06d5654c5f568e'
 
@@ -63,7 +64,7 @@ def checkType(input: str):
             Fclose(parameter)
         elif command == 'google':
             Fopen("https://www.google.com/search?q=" + quote_plus(parameter))
-        elif command == 'youtube':
+        elif command == 'youtube' or command == 'YouTube':
             openYT(parameter)
         elif command == 'wiki':
             Fopen("https://en.wikipedia.org/w/index.php?search=" + quote_plus(parameter))
@@ -265,12 +266,33 @@ def Fclose(arg: str, confirm=True):
 def __main__():
     while True:
         sys.stdout.write('$ ')
+        voice_input = listen_for_voice()
+        if voice_input:
+            checkType(voice_input)
 
-        userInput = input().strip()
+        # userInput = input().strip()
 
-        if not userInput:
-            continue
+        # if not userInput:
+        #     continue
 
-        checkType(userInput)
+        # checkType(userInput)
+
+def listen_for_voice():
+    recognizer = sr.Recognizer()
+    mic = sr.Microphone()
+
+    with mic as source:
+        recognizer.adjust_for_ambient_noise(source)
+        print("Listening...")
+
+        audio = recognizer.listen(source)
+    
+    try:
+        command = recognizer.recognize_google(audio)
+        print(f"You said: {command}")
+        return command.lower()
+    except Exception:
+        return ""
+
 
 __main__()
